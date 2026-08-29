@@ -32,7 +32,7 @@ class MOTIONFORGEKIMODOTOOLSET_API UKimodoToolset : public UToolsetDefinition
 
 public:
 
-	virtual FString GetToolsetVersion() const override { return TEXT("0.1"); }
+	virtual FString GetToolsetVersion() const override { return TEXT("0.1.1"); }
 
 	/**
 	 * Report whether Kimodo can generate right now, and what to do if it cannot.
@@ -44,6 +44,17 @@ public:
 	 * Read Advice and act on it; the other fields are the evidence behind it. Device Mode is worth
 	 * repeating to the user when it comes back as CPU only - that means no GPU reached the
 	 * container, generation will take minutes instead of seconds, and it is usually fixable.
+	 *
+	 * Three more fields answer questions that would otherwise be guessed at:
+	 *
+	 * - **Image State** says whether the image on this machine was built from the runner this plugin
+	 *   ships. `Drifted` is the one to act on - it is the deterministic signal for a container that
+	 *   starts, answers, and then behaves like an older plugin. Rebuild Kimodo Runner is the fix, and
+	 *   `Drifted` is the only evidence that justifies it.
+	 * - **Has Hugging Face Token** false means the runner will build, start, report a device mode and
+	 *   then fail every generation. Only the user can fix it, and telling them early is the whole
+	 *   point of asking before generating.
+	 * - **Has Runpod Api Key** false means a GPU cannot be rented. Irrelevant when running locally.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Kimodo|Diagnostics")
 	static UToolCallAsyncResultKimodoStatus* GetKimodoStatus();
@@ -78,11 +89,21 @@ public:
 	/**
 	 * Rebuild the runner image and restart it.
 	 *
-	 * The fix for two specific failures, and not a general remedy: a clip that fails to read with a
-	 * version or joint-count mismatch, meaning the plugin and the container are different versions;
-	 * and a runner that answers but reports Kimodo as not importable, meaning the image built
-	 * badly. Downloaded weights live outside the image and survive, so this costs minutes rather
-	 * than repeating the first run.
+	 * Not a general remedy. There are exactly three things this fixes:
+	 *
+	 * - **Get Kimodo Status reports Image State as `Drifted`.** The image was built from different
+	 *   runner files than this plugin ships. That is the one case with hard evidence behind it, and
+	 *   it is worth checking first, because the drifted container starts and answers health checks
+	 *   perfectly while behaving like an older plugin.
+	 * - A clip fails to read with a version or joint-count mismatch, meaning the plugin and the
+	 *   container disagree about the wire format.
+	 * - The runner answers but reports Kimodo as not importable, meaning the image built badly.
+	 *
+	 * Anything else - a slow generation, a bad-looking clip, a runner that is simply stopped - is not
+	 * this. Stopping and starting the container does not rebuild it, and should be tried first.
+	 *
+	 * Downloaded weights live outside the image and survive, so this costs minutes rather than
+	 * repeating the first run.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Kimodo|Setup")
 	static UToolCallAsyncResultString* RebuildKimodoRunner();
