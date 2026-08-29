@@ -32,7 +32,7 @@ class MOTIONFORGEKIMODOTOOLSET_API UKimodoToolset : public UToolsetDefinition
 
 public:
 
-	virtual FString GetToolsetVersion() const override { return TEXT("0.1.1"); }
+	virtual FString GetToolsetVersion() const override { return TEXT("0.2.1"); }
 
 	/**
 	 * Report whether Kimodo can generate right now, and what to do if it cannot.
@@ -76,6 +76,21 @@ public:
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Kimodo|Setup")
 	static UToolCallAsyncResultString* SetUpKimodo();
+
+	/**
+	 * Start the runner container that already exists.
+	 *
+	 * **The right call when Get Kimodo Status reports the container stopped** - which is a different
+	 * state from there being no container at all, and wants a different action. Nothing is built,
+	 * nothing is downloaded and the container is not recreated, so this takes seconds where Set Up
+	 * Kimodo could take a very long time.
+	 *
+	 * It returns before the runner can generate: the text encoder reads about 16GB into memory on
+	 * every start, so expect a couple of minutes and check the status again rather than concluding
+	 * it failed.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Kimodo|Setup")
+	static UToolCallAsyncResultString* StartKimodoRunner();
 
 	/**
 	 * Stop the local runner container.

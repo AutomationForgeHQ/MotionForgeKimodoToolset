@@ -103,6 +103,15 @@ UToolCallAsyncResultString* UKimodoToolset::SetUpKimodo()
 		});
 }
 
+UToolCallAsyncResultString* UKimodoToolset::StartKimodoRunner()
+{
+	return KimodoToolsetPrivate::RunStringTool(
+		[](UKimodoSubsystem& Kimodo, TFunction<void(bool, const FString&)> Done)
+		{
+			Kimodo.StartRunner(MoveTemp(Done));
+		});
+}
+
 UToolCallAsyncResultString* UKimodoToolset::StopKimodoRunner()
 {
 	return KimodoToolsetPrivate::RunStringTool(
