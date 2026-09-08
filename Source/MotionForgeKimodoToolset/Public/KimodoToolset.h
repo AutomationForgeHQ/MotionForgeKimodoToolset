@@ -32,7 +32,7 @@ class MOTIONFORGEKIMODOTOOLSET_API UKimodoToolset : public UToolsetDefinition
 
 public:
 
-	virtual FString GetToolsetVersion() const override { return TEXT("0.2.1"); }
+	virtual FString GetToolsetVersion() const override { return TEXT("0.3.1"); }
 
 	/**
 	 * Report whether Kimodo can generate right now, and what to do if it cannot.
@@ -328,6 +328,10 @@ public:
 		int32 ClipFrame,
 		const FString& ConstraintType);
 
+	/**
+	 * Writes a pose constraint onto a motion definition, so a generated take is directed
+	 * rather than only described. Authoring a constraint generates nothing and spends nothing.
+	 */
 	UFUNCTION(meta = (AICallable), Category = "Kimodo|Authoring")
 	static FString AuthorPoseConstraint(
 		const FString& MotionAssetPath,

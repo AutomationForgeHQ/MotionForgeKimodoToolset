@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 4,
-  "VersionName": "0.3.0",
+  "VersionName": "0.3.1",
   "FriendlyName": "MotionForge Kimodo Toolset",
   "Description": "Exposes the Kimodo runner's setup and health as native Model Context Protocol tools, so an agent can install, start, diagnose and repair local motion generation without a human driving Docker. Adapter only - it holds no logic and can be removed without affecting MotionForge Kimodo.",
   "Category": "Automation Forge",

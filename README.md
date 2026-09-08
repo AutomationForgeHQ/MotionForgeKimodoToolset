@@ -2,32 +2,68 @@
 
 Installing, starting and diagnosing a local motion model, as Model Context Protocol tools.
 
-**Status: 0.1 — compiles and registers; the tools have not been driven by an agent yet.**
+**Status: 0.3 — compiles, registers, and is in real documented use**, covering both the local
+runner and the Runpod cloud-rental path (see
+[REMOTE_SETUP.md](https://kovati.dev/plugins/motionforge/)).
 
 Adapter only. It holds no logic, forwards everything to `UKimodoSubsystem`, and can be deleted
-without affecting [MotionForgeKimodo](../MotionForgeKimodo/README.md).
+without affecting [MotionForgeKimodo](https://kovati.dev/plugins/motionforge/).
 
 ---
 
 ## What is here, and what is not
 
 **Not here: generation.** A Motion Definition pointed at the Kimodo provider goes through
-[MotionForgeToolset](../MotionForgeToolset/README.md) like any other. That is the point of the
+[MotionForgeToolset](https://github.com/AutomationForgeHQ/MotionForgeToolset) like any other. That is the point of the
 provider abstraction — an agent that knows how to generate motion should not have to learn a second
 way to do it just because the model happens to be running on this machine.
 
-**Here: everything specific to hosting a model yourself.**
+**Here: everything specific to hosting a model yourself.** All 22 tools, grouped the way their
+`Category` metadata groups them in the MCP client:
+
+**Setup — local runner lifecycle**
+
+| Tool | |
+|---|---|
+| `SetUpKimodo` | check Docker, start it, build and start the runner container |
+| `StartKimodoRunner` | start an already-built container. No build, no download — seconds, not minutes |
+| `StopKimodoRunner` | stop the container and free the memory its models hold |
+| `RebuildKimodoRunner` | rebuild the image. For a drifted image, a wire-format mismatch, or a badly built image only |
+| `CreateKimodoRetargetRig` | build the SOMA rig and an IK Retargeter for a Motion Character |
+| `SetHuggingFaceToken` | store the token the gated text encoder needs, in the OS credential vault |
+
+**Cloud rental — renting and releasing a GPU on Runpod**
+
+| Tool | |
+|---|---|
+| `SetRunpodApiKey` | store a write-scoped Runpod API key so a GPU can be rented without leaving the editor |
+| `CloudProvision` | rent a GPU, point this project at it, and secure it — one call. Spends the user's money |
+| `CloudStart` | start the rented pod; billing resumes, ready to generate in about two minutes |
+| `CloudStop` | stop the rented pod; GPU billing stops, its disk keeps costing about $0.02/hr |
+| `CloudStatus` | what the rented pod is doing, which GPU it is, and what it costs per hour |
+| `CloudTerminate` | destroy the rented pod and its downloaded weights — the only way to pay nothing. Not reversible |
+
+**Diagnostics — why generation isn't working, or isn't right**
 
 | Tool | |
 |---|---|
 | `GetKimodoStatus` | can it generate right now, and what to do if not. Re-checks Docker and the runner |
-| `SetUpKimodo` | check Docker, start it, build and start the runner container |
-| `StopKimodoRunner` | stop the container and free the memory its models hold |
-| `RebuildKimodoRunner` | rebuild the image. For a wire-format mismatch or a badly built image only |
-| `CreateKimodoRetargetRig` | build the SOMA rig and an IK Retargeter for a Motion Character |
+| `DiagnoseKimodoAnimation` | measure where hands and feet land relative to the pelvis, frame by frame |
+| `VerifyPoseConversion` | check a pose round-trips through Kimodo's terms unchanged — catches axis/mapping bugs other checks miss |
+| `PreviewConstraintPayload` | read the constraint JSON a definition would send, without generating anything |
+| `MeasureBones` | where named bones are, in centimetres, optionally against another clip |
 | `GetKimodoRunnerLogs` | recent container output — where the real reason usually is |
 
-`CreateKimodoRetargetRig` is the one tool here that is a judgement call rather than a repair. Kimodo
+**Pose/constraint authoring — anchoring a generation to poses the project already has**
+
+| Tool | |
+|---|---|
+| `CapturePoseKey` | capture the selected character's current pose into a constraint key at a clip frame |
+| `AuthorPoseConstraint` | pose a definition's constraint keys by sampling frames from an existing animation |
+| `ListConstraints` | what a definition is constrained to right now, as authored, on the project's own bones |
+| `ClearConstraintKeys` | remove authored constraint keys — the undo for a capture |
+
+`CreateKimodoRetargetRig` is the one setup tool that is a judgement call rather than a repair. Kimodo
 clips land on the user's skeleton by orientation matching with no setup at all; the retargeter adds
 IK goals on hands and feet, which matters only when the character's proportions differ enough from
 the generator's fixed body for feet to slide. The skill tells an agent to generate a clip and look
@@ -61,7 +97,7 @@ Both belong in whatever an agent says before calling `SetUpKimodo` the first tim
 ```
 MotionForgeKimodoToolset.uplugin   editor-only; ToolsetRegistry and ModelContextProtocol
 Source/MotionForgeKimodoToolset/
-  KimodoToolset.*                  the five tools, forwarding and nothing else
+  KimodoToolset.*                  the 22 tools, forwarding and nothing else
   KimodoSkill.h                    when to choose Kimodo, and why it fails
   KimodoAsyncResult.h              typed promise for the status tool
 ```
