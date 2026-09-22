@@ -32,7 +32,15 @@ class MOTIONFORGEKIMODOTOOLSET_API UKimodoToolset : public UToolsetDefinition
 
 public:
 
-	virtual FString GetToolsetVersion() const override { return TEXT("0.3.1"); }
+	/**
+	 * The version an agent is told it is talking to, read from this plugin's own descriptor.
+	 *
+	 * Defined in the .cpp deliberately. UE_PLUGIN_NAME is a private UBT definition, correct
+	 * only inside this module; a body here in a public header would resolve it to whichever
+	 * plugin included the header. Nothing in this class is a second copy of the version, so
+	 * there is nothing here that can drift from it.
+	 */
+	virtual FString GetToolsetVersion() const override;
 
 	/**
 	 * Report whether Kimodo can generate right now, and what to do if it cannot.
@@ -67,10 +75,11 @@ public:
 	 * acting, so running it against a working install just confirms it.
 	 *
 	 * **Warn the user before calling this the first time on a machine.** It downloads roughly 20GB
-	 * and can take a long while: a CUDA base image, PyTorch, Kimodo and an 8B text encoder. It will
-	 * also fail at the download stage rather than at startup if they have not accepted the Llama 3
-	 * licence on Hugging Face and logged in - if the runner logs mention a gated repository or a
-	 * 401, that is what happened, and only the user can fix it.
+	 * and can take a long while: a CUDA base image, PyTorch, Kimodo and an 8B text encoder. The
+	 * encoder is a gated model: it needs a Hugging Face token on the Keys page and the Llama 3 licence
+	 * granted to that token. A token without the grant installs fine and then fails every generation -
+	 * a gated repository or a 401 in the runner logs is that. MotionForge's setup steps say whether
+	 * the grant is in place; only the user can request it.
 	 *
 	 * Returns what the runner reports about itself once it is up, or the reason it is not.
 	 */

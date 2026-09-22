@@ -18,7 +18,7 @@ without affecting [MotionForgeKimodo](https://kovati.dev/plugins/motionforge/).
 provider abstraction — an agent that knows how to generate motion should not have to learn a second
 way to do it just because the model happens to be running on this machine.
 
-**Here: everything specific to hosting a model yourself.** All 22 tools, grouped the way their
+**Here: everything specific to hosting a model yourself.** All <!-- forge:tools -->22 tools<!-- /forge:tools -->, grouped the way their
 `Category` metadata groups them in the MCP client:
 
 **Setup — local runner lifecycle**
@@ -88,16 +88,18 @@ error would throw away the advice with it.
 Both belong in whatever an agent says before calling `SetUpKimodo` the first time on a machine:
 
 - **The first run downloads roughly 20GB** and can take a long while.
-- **The text encoder is a gated Hugging Face model.** If the user has not accepted the Llama 3
-  licence and logged in, the run fails partway through a download. A `401` or *gated repository* in
-  the runner logs is that, and only they can fix it.
+- **The text encoder is a gated Hugging Face model.** It needs a Hugging Face token stored on the
+  Keys page *and* the Llama 3 licence granted to that token. The two are separate: a token without
+  the grant installs fine and then fails every generation. MotionForge's setup steps ask Hugging Face
+  whether the token has been granted and say so. Only the user can request access, and the review
+  can take hours.
 
 ## Layout
 
 ```
 MotionForgeKimodoToolset.uplugin   editor-only; ToolsetRegistry and ModelContextProtocol
 Source/MotionForgeKimodoToolset/
-  KimodoToolset.*                  the 22 tools, forwarding and nothing else
+  KimodoToolset.*                  the <!-- forge:tools -->22 tools<!-- /forge:tools -->, forwarding and nothing else
   KimodoSkill.h                    when to choose Kimodo, and why it fails
   KimodoAsyncResult.h              typed promise for the status tool
 ```

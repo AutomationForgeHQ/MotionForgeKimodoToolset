@@ -17,6 +17,13 @@ public class MotionForgeKimodoToolset : ModuleRules
 			}
 			);
 
+		PrivateDependencyModuleNames.AddRange(
+			new string[]
+			{
+				"Projects",         // IPluginManager, so GetToolsetVersion() reads the descriptor
+			}
+			);
+
 		// As with MotionForgeToolset: no dependency on ModelContextProtocol. Tools register with
 		// ToolsetRegistry and MCP picks them up from there.
 	}
